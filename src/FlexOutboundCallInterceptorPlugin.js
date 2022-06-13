@@ -2,10 +2,9 @@ import React from 'react';
 import { VERSION } from '@twilio/flex-ui';
 import { FlexPlugin } from '@twilio/flex-plugin';
 
-import CustomTaskListContainer from './components/CustomTaskList/CustomTaskList.Container';
 import reducers, { namespace } from './states';
 
-const PLUGIN_NAME = 'FlexOutboundCallInterceptorPlugin';
+export const PLUGIN_NAME = 'FlexOutboundCallInterceptorPlugin';
 
 export default class FlexOutboundCallInterceptorPlugin extends FlexPlugin {
   constructor() {
@@ -21,9 +20,6 @@ export default class FlexOutboundCallInterceptorPlugin extends FlexPlugin {
    */
   async init(flex, manager) {
     this.registerReducers(manager);
-
-    const options = { sortOrder: -1 };
-    flex.AgentDesktopView.Panel1.Content.add(<CustomTaskListContainer key="FlexOutboundCallInterceptorPlugin-component" />, options);
   }
 
   /**
