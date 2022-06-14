@@ -4,6 +4,8 @@ import { FlexPlugin } from '@twilio/flex-plugin';
 
 import reducers, { namespace } from './states';
 
+import registerMiddlewares, { middlewares } from './middlewares';
+
 export const PLUGIN_NAME = 'FlexOutboundCallInterceptorPlugin';
 
 export default class FlexOutboundCallInterceptorPlugin extends FlexPlugin {
@@ -20,6 +22,11 @@ export default class FlexOutboundCallInterceptorPlugin extends FlexPlugin {
    */
   async init(flex, manager) {
     this.registerReducers(manager);
+
+    console.log('[outbound-call-interceptor] Initializing plugin...');
+
+    console.log('[outbound-call-interceptor] middlewares => ', middlewares);
+    registerMiddlewares(flex, middlewares);
   }
 
   /**
