@@ -9,17 +9,14 @@ export const middlewares = [
   QueueDebuggerMiddleware,
 ];
 
-const EVENT_NAME = 'beforeStartOutboundCall';
-
-
-const fulfill = _ =>  _ => _;
+const ACTION_NAME = 'StartOutboundCall';
 
 const registerMiddlewares = (flex, middlewares) => {
   console.log(`[outbound-call-interceptor] Registering middlewares for event ${EVENT_NAME}`);
 
   //middlewares.map(m => flex.Actions.addListener(EVENT_NAME, m));
   
-  flex.Actions.replaceAction('StartOutboundCall', (payload, original) => {
+  flex.Actions.replaceAction(ACTION_NAME, (payload, original) => {
     console.log('Called StartOutboundCall action with payload => ', payload);
 
     const wrappedOriginal = next => async payload => {

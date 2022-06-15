@@ -1,31 +1,169 @@
-# Your custom Twilio Flex Plugin
+# Outbound Call Middleware Chain
 
-Twilio Flex Plugins allow you to customize the appearance and behavior of [Twilio Flex](https://www.twilio.com/flex). If you want to learn more about the capabilities and how to use the API, check out our [Flex documentation](https://www.twilio.com/docs/flex).
+This Flex Plugin allows developers to set custom pre-filter and middlewares for outbound calls started using the `StartOutboundCall` action. The idea behind this plugin is to provide a middleware engine that receives functions to change and/or filter outbound calls.
+
+The plugin comes out of the box with a set of filters and also support custom filters that can be implemented by yourself.
+
+## OOTB Middlewares
+
+- **AutoQueueSelectionMiddleware**: Select a queue based on worker's task queues and availability against a block-list.
+- **DefaultFallbackQueueMiddleware**: Select a default queue in case any other queue wasn't specified.
+- **QueueDebuggerMiddleware**: Print on the console the action payload in a given moment.
+
+## Requirements
+
+- Flex 1.31+
+- Node 14+
+- NPM 6.14+
+- [Twilio CLI 3.4+](https://www.twilio.com/docs/twilio-cli/quickstart#install-twilio-cli)
+- [Flex Plugin for Twilio CLI](https://www.twilio.com/docs/twilio-cli/plugins#available-plugins)
+- [Serverless Plugin for Twilio CLI](https://www.twilio.com/docs/twilio-cli/plugins#available-plugins)
 
 ## Setup
 
-Make sure you have [Node.js](https://nodejs.org) as well as [`npm`](https://npmjs.com). We support Node >= 10.12 (and recommend the _even_ versions of Node). Afterwards, install the dependencies by running `npm install`:
+### Cloning repository
 
-```bash
-cd 
+First things first, you need to clone this repository using the following command:
 
-# If you use npm
-npm install
+```
+$ git clone https://github.com/devsdmf/flex-outbound-call-middleware-chain
+$ cd flex-outbound-call-middleware-chain
 ```
 
-Next, please install the [Twilio CLI](https://www.twilio.com/docs/twilio-cli/quickstart) by running:
+### Installing dependencies
 
-```bash
-brew tap twilio/brew && brew install twilio
+Now, we need to install the dependencies for both the plugin and the serverless functions:
+
+```
+$ cd /path/to/the project
+$ npm install
+$ cd functions/
+$ npm install
 ```
 
-Finally, install the [Flex Plugin extension](https://github.com/twilio-labs/plugin-flex/tree/v1-beta) for the Twilio CLI:
+### Setting up functions environment
 
-```bash
-twilio plugins:install @twilio-labs/plugin-flex
+Inside the functions folder, we have a `.env.sample` file, create a copy of this file and set the values according to the following list:
+
+- FLEX_TASKROUTER_WORKSPACE_SID: This is the SID of your Flex TaskRouter workspace, that you can find [here](https://console.twilio.com/us1/develop/taskrouter/workspaces?frameUrl=%2Fconsole%2Ftaskrouter%2Fworkspaces%3Fx-target-region%3Dus1).
+
+### Running functions locally
+
+In order to run the functions in the local environment, you can start a development server using:
+
+```
+$ npm start
 ```
 
-## Development
+### Setting up plugin environment
 
-Run `twilio flex:plugins --help` to see all the commands we currently support. For further details on Flex Plugins refer to our documentation on the [Twilio Docs](https://www.twilio.com/docs/flex/developer/plugins/cli) page.
+On the root folder of the project, we have the `.env.sample` file, make a copy of this file and set the values according to the following list:
+
+- FLEX_APP_TWILIO_SERVERLESS_DOMAIN: The domain where your functions are running, in case you are running it locally, it will be `http://localhost:3000` or the domain of your deployed serverless.
+
+### Running the plugin locally
+
+To run the plugin locally to test the middlewares and any custom components, you can start a development server using:
+
+```
+$ twilio flex:plugins:start
+```
+
+## Deploying the plugin
+
+Prior to start the development, make sure that you already setup a profile on your Twilio CLI and installed the necessary plugins described on the _requirements_ section.
+
+### Functions
+
+To deploy the functions run the following command in the `/functions` folder:
+
+```
+$ twilio serverless:deploy --production
+```
+
+The output of this command contains the function's domain, save it in a safe place because we will use it in the next step, it has the following format: `outbound-call-middleware-XXXX.twil.io`.
+
+### Plugin
+
+First, you need to edit your `.env` file to set your functions domain in the variable. Then, you need to run the following command at the root of the repository:
+
+```
+$ twilio flex:plugins:deploy --major --changelog="Flex Outbound Call Middleware Chain"
+```
+
+The output of this command, gives you a new command like in the example below:
+
+```
+Using profile lucas-cc (ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX)
+
+✔ Validating deployment of plugin flex-outbound-call-middleware
+✔ Compiling a production build of flex-outbound-call-middleware
+✔ Uploading flex-outbound-call-middleware
+✔ Registering plugin flex-outbound-call-middleware with Plugins API
+✔ Registering version v1.0.0 with Plugins API
+
+🚀 Plugin (private) flex-outbound-call-middleware@1.0.0 was successfully deployed using Plugins API
+
+Next Steps:
+Run $ twilio flex:plugins:release --plugin flex-outbound-call-middleware@1.0.0 --name "Autogenerated Release 1655268041224" --description "The description of this Flex Plugin Configuration." to enable this plugin on your Flex application
+```
+
+Now, run the release command and it is ready to be tested!
+
+## Usage
+
+### Creating a new middleware
+
+Creating a new middleware is pretty simple and just requires one file, that needs to be created on the `/middlewares` folder. The following example shows the API for a middleware as well how to deny a call:
+
+```
+/middlewares/SampleMiddleware.js
+
+const SampleMiddleware = (next) => async (payload) => {
+  console.log('SampleMiddleware called with payload => ', payload);
+
+  if (payload === false) 
+    return await next(false);
+
+  // your logic goes here
+  // you can change the payload and send it to the next middleware in the chain
+
+  return await next(payload);
+
+  // you can also pass false to deny the call at the end of the chain
+  return await next(false);
+};
+
+export default SampleMiddleware;
+```
+
+## Registering the middleware
+
+The middlewares are registered on the `/middlewares/index.js` file, and you just need to import it and add it to the middlewares array:
+
+```
+/middlewares/index.js
+
+// default imports...
+import SampleMiddleware from './SampleMiddleware';
+
+// register the middlewares in the execution order on this following array
+export const middlewares = [
+  ...
+  SampleMiddleware,
+  ...
+];
+
+// rest of the code
+```
+
+**NOTE**: The middlewares are processed in the order of declaration, so, be careful with the order on the array.
+
+## Disclaimer
+
+This software is to be considered "sample code", a Type B Deliverable, and is delivered "as-is" to the user. Twilio bears no responsibility to support the use or implementation of this software.
+
+## License
+
+This project is licensed under the [MIT license](LICENSE), that means that it is free to use, copy and modified for your own intents.
 

@@ -1,6 +1,6 @@
 {
-  "name": "flex-outbound-call-interceptor",
-  "version": "0.0.0",
+  "name": "flex-outbound-call-middleware",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "postinstall": "flex-plugin pre-script-check"
