@@ -1,14 +1,12 @@
 import AutoQueueSelectionMiddleware from './AutoQueueSelectionMiddleware';
 import DefaultFallbackQueueMiddleware from './DefaultFallbackQueueMiddleware';
 import QueueDebuggerMiddleware from './QueueDebuggerMiddleware';
-import ReifyPayloadMiddleware from './ReifyPayloadMiddleware';
 
 // register the middlewares in the execution order on this following array
 export const middlewares = [
   AutoQueueSelectionMiddleware,
   DefaultFallbackQueueMiddleware,
   QueueDebuggerMiddleware,
-  ReifyPayloadMiddleware,
 ];
 
 const EVENT_NAME = 'beforeStartOutboundCall';
