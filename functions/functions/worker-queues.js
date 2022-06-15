@@ -1,4 +1,6 @@
-exports.handler = (context, event, callback) => {
+const TokenValidator = require('twilio-flex-token-validator').functionValidator;
+
+exports.handler = TokenValidator((context, event, callback) => {
   const client = context.getTwilioClient();
 
   const response = new Twilio.Response();
@@ -7,7 +9,7 @@ exports.handler = (context, event, callback) => {
   response.appendHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   console.log('[worker-queues] Fetching queues for worker => ', event.workerSid);
-  
+
   client.taskrouter
     .workspaces(context.FLEX_TASKROUTER_WORKSPACE_SID)
     .taskQueues
@@ -30,4 +32,4 @@ exports.handler = (context, event, callback) => {
 
       return callback(500, { error: 'An internal error occurred' });
     });
-};
+});

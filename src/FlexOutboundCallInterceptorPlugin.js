@@ -3,6 +3,7 @@ import { VERSION } from '@twilio/flex-ui';
 import { FlexPlugin } from '@twilio/flex-plugin';
 
 import reducers, { namespace } from './states';
+import { Actions as WorkerTaskQueuesActions } from './states/WorkerTaskQueuesState';
 
 import registerMiddlewares, { middlewares } from './middlewares';
 
@@ -23,9 +24,9 @@ export default class FlexOutboundCallInterceptorPlugin extends FlexPlugin {
   async init(flex, manager) {
     this.registerReducers(manager);
 
-    console.log('[outbound-call-interceptor] Initializing plugin...');
+    console.log('WorkerTaskQueueActions ====> ', WorkerTaskQueuesActions.initTaskQueues());
+    manager.store.dispatch(WorkerTaskQueuesActions.initTaskQueues());
 
-    console.log('[outbound-call-interceptor] middlewares => ', middlewares);
     registerMiddlewares(flex, middlewares);
   }
 

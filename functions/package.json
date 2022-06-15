@@ -8,8 +8,9 @@
     "deploy": "twilio-run deploy"
   },
   "dependencies": {
+    "@twilio/runtime-handler": "1.2.3",
     "twilio": "^3.56",
-    "@twilio/runtime-handler": "1.2.3"
+    "twilio-flex-token-validator": "^1.5.6"
   },
   "devDependencies": {
     "twilio-run": "^3.4.2"
